@@ -24,7 +24,7 @@ const path = require('path');
                     return false;
                 }
                 for (const e of Array.from(document.getElementsByTagName('a'))) {
-                    if (e.href.startsWith('https://storage.evozi.com/apk')) {
+                    if (e.href.startsWith('https://storage.evozi.com/')) {
                         r = e.href;
                         break;
                     }

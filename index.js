@@ -11,7 +11,6 @@ const path = require('path');
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     for (const e of q) {
-
         await page.goto('https://apps.evozi.com/apk-downloader/?id=' + e);
         await page.click('.btn-info');
         const url = await page.evaluate(async () => {

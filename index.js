@@ -1,6 +1,5 @@
-
 if (!process.argv[2]) {
-    console.log('Usage: node index.js <id>');
+    console.log('Usage: node index.js <id(s)>');
     process.exit(1);
 }
 const q = process.argv[2].split(',')
@@ -8,9 +7,10 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 (async () => {
-    const browser = await puppeteer.launch({ headless: true });
-    const page = await browser.newPage();
+    await fs.promises.mkdir('apks', { recursive: true });
+    const browser = await puppeteer.launch({ headless: false });
     for (const e of q) {
+        const page = await browser.newPage();
         await page.goto('https://apps.evozi.com/apk-downloader/?id=' + e);
         await page.click('.btn-info');
         const url = await page.evaluate(async () => {
@@ -45,7 +45,8 @@ const path = require('path');
         console.log(url);
         const r = await fetch(url);
         const buffer = Buffer.from(await r.arrayBuffer());
-        await fs.promises.writeFile(path.basename(url.split('https://')[1]), buffer);
+        await fs.promises.mkdir('apks/' + e, { recursive: true });
+        await fs.promises.writeFile('apks/' + e + '/' + path.basename(url.split('https://')[1]), buffer);
     }
     await browser.close();
 })();

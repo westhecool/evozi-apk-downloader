@@ -46,7 +46,7 @@ const path = require('path');
         const r = await fetch(url);
         const buffer = Buffer.from(await r.arrayBuffer());
         await fs.promises.mkdir('apks/' + e, { recursive: true });
-        await fs.promises.writeFile('apks/' + e + '/' + path.basename(url.split('https://')[1]), buffer);
+        await fs.promises.writeFile('apks/' + e + '/' + path.basename(decodeURI(url.split('https://')[1])), buffer);
     }
     await browser.close();
 })();

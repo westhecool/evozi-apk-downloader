@@ -1,11 +1,17 @@
-const q = 'com.twitter.android';
+const q = process.argv[2];
+if (!q) {
+    console.log('Usage: node index.js <id>');
+    process.exit(1);
+}
 const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
 (async () => {
     const browser = await puppeteer.launch({headless:true});
     const page = await browser.newPage();
     await page.goto('https://apps.evozi.com/apk-downloader/?id=' + q);
     await page.click('.btn-info');
-    console.log(await page.evaluate(async () => {
+    const url = await page.evaluate(async () => {
         var r = null;
         while (r == null) {
             for (const e of Array.from(document.getElementsByTagName('a'))) {
@@ -17,6 +23,10 @@ const puppeteer = require('puppeteer');
             await new Promise(resolve => setTimeout(resolve, 100));
         }
         return r;
-    }));
+    });
     await browser.close();
+    console.log(url);
+    const r = await fetch(url);
+    const buffer = Buffer.from(await r.arrayBuffer());
+    await fs.promises.writeFile(path.basename(url.split('https://')[1]), buffer);
 })();

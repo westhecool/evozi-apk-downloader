@@ -15,7 +15,14 @@ const path = require('path');
         await page.click('.btn-info');
         const url = await page.evaluate(async () => {
             var r = null;
+            const start = Date.now();
             while (r == null) {
+                if (Date.now() - start > 200000) {
+                    return null;
+                }
+                if (document.getElementsByClassName('text-danger')[0]) { // failed
+                    return false;
+                }
                 for (const e of Array.from(document.getElementsByTagName('a'))) {
                     if (e.href.startsWith('https://storage.evozi.com/apk')) {
                         r = e.href;
@@ -27,6 +34,14 @@ const path = require('path');
             return r;
         });
         await page.close();
+        if (url == null) {
+            console.log('timeout');
+            continue;
+        }
+        if (url == false) {
+            console.log('cannot find apk');
+            continue;
+        }
         console.log(url);
         const r = await fetch(url);
         const buffer = Buffer.from(await r.arrayBuffer());

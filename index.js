@@ -6,10 +6,12 @@ const q = process.argv[2].split(',')
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
+const { unsubscribe } = require('diagnostics_channel');
 (async () => {
     await fs.promises.mkdir('apks', { recursive: true });
     const browser = await puppeteer.launch({ headless: false });
     for (const e of q) {
+        if (fs.existsSync('apks/' + e)) continue;
         const page = await browser.newPage();
         await page.goto('https://apps.evozi.com/apk-downloader/?id=' + e);
         await page.click('.btn-info');
@@ -21,6 +23,9 @@ const path = require('path');
                     return null;
                 }
                 if (document.getElementsByClassName('text-danger')[0]) { // failed
+                    if (document.getElementsByClassName('text-danger')[0].innerText.includes('Rate limit exceeded')) {
+                        return undefined;
+                    }
                     return false;
                 }
                 for (const e of Array.from(document.getElementsByTagName('a'))) {
@@ -34,6 +39,11 @@ const path = require('path');
             return r;
         });
         await page.close();
+        if (url == undefined) {
+            console.log('rate limit');
+            process.exit();
+        }
+        await fs.promises.mkdir('apks/' + e, { recursive: true });
         if (url == null) {
             console.log('timeout');
             continue;
@@ -45,7 +55,6 @@ const path = require('path');
         console.log(url);
         const r = await fetch(url);
         const buffer = Buffer.from(await r.arrayBuffer());
-        await fs.promises.mkdir('apks/' + e, { recursive: true });
         await fs.promises.writeFile('apks/' + e + '/' + path.basename(decodeURI(url.split('https://')[1])), buffer);
     }
     await browser.close();

@@ -2,11 +2,10 @@ if (!process.argv[2]) {
     console.log('Usage: node index.js <id(s)>');
     process.exit(1);
 }
-const q = process.argv[2].split(',')
+const q = process.argv[2].split(',');
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
-const { unsubscribe } = require('diagnostics_channel');
 (async () => {
     await fs.promises.mkdir('apks', { recursive: true });
     const browser = await puppeteer.launch({ headless: false });
@@ -14,6 +13,7 @@ const { unsubscribe } = require('diagnostics_channel');
         if (fs.existsSync('apks/' + e)) continue;
         const page = await browser.newPage();
         await page.goto('https://apps.evozi.com/apk-downloader/?id=' + e);
+        await page.waitForSelector('.btn-info');
         await page.click('.btn-info');
         const url = await page.evaluate(async () => {
             var r = null;
